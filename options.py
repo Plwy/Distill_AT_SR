@@ -9,14 +9,21 @@ parser.add_argument('--n_GPUs', type=int, default=1, help='number of GPUs')
 parser.add_argument('--gpu_id', type=int, default=0, help='GPU id')
 parser.add_argument('--n_threads', type=int, default=6, help='number of threads for data loading')
 
+parser.add_argument('--seed', type=int, default=1, help='random seed')
+
 
 # Dataset Setting
-parser.add_argument('--dir_data', type=str, default='/data/dataset/dataset/sr_dataset', help='dataset directory')
+parser.add_argument('--dir_data', type=str, default='/media/zsl/data/zsl_datasets/RCAN/traindata/DIV2K/bicubic', help='dataset directory')
 parser.add_argument('--data_train', type=str, default='DIV2K', help='train dataset name')
-parser.add_argument('--data_test', type=str, default='Set5+Set14+B100+Urban100', help='test dataset name')
+parser.add_argument('--data_test', type=str, default='DIV2K', help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-800/801-810', help='train/test data range')
 parser.add_argument('--scale', type=str, default='4', help='super resolution scale')
 parser.add_argument('--ext', type=str, default='sep', help='dataset file extension')
+
+# add RCAN data params
+parser.add_argument('--n_train', type=int, default=800, help='number of training set')
+parser.add_argument('--n_val', type=int, default=5, help='number of validation set')
+parser.add_argument('--offset_val', type=int, default=800, help='validation index offest')
 
 
 # data argmentation setting
@@ -99,5 +106,5 @@ args = parser.parse_args()
 # template.set_template(args)
 
 args.scale = list(map(lambda x: int(x), args.scale.split('+')))
-args.data_train = args.data_train.split('+')
-args.data_test = args.data_test.split('+')
+# args.data_train = args.data_train.split('+')
+# args.data_test = args.data_test.split('+')

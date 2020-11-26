@@ -1,3 +1,8 @@
+import numpy as np
+import cv2
+import torch
+import os
+
 
 from options import args
 from models import *
@@ -38,6 +43,7 @@ def train():
     # 训练数据加载
     loader = data.Data(args)
 
+    print(type(loader))
 
 
     # teacher_model = load_teacher_model()
@@ -56,10 +62,10 @@ def train():
     
 
 
-def eval():
-    """
-        推导
-    """
+# def eval():
+#     """
+#         推导
+#     """
 
 
 
