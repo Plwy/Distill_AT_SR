@@ -4,5 +4,6 @@ __pycache__/
 utils/__pycache__/
 
 result/
+ckpt/
 
 todo.md
