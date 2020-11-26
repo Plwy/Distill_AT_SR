@@ -3,11 +3,13 @@ import cv2
 import torch
 import os
 
+import data
 
 from options import args
 from models import *
 from utils import utility
-import data
+from trainer import Trainer
+
 
 torch.manual_seed(args.seed) #为CPU设置种子用于生成随机数，以使得结果是确定的
 torch.cuda.manual_seed(args.seed) #为当前GPU设置随机种子；
@@ -45,11 +47,12 @@ def train():
 
     print(type(loader))
 
+    teacher_model = load_teacher_model()
+    student_ckpt, student_model = create_student_model()
 
-    # teacher_model = load_teacher_model()
-    # student_ckpt, student_model = create_student_model()
+    loss = loss.Loss(args, checkpoint) if not args.test_only else None
 
-    # trainer = Trainer(args, loader, student_model, loss, student_ckpt) 
+    trainer = Trainer(args, loader, student_model, teacher_model,  loss, student_ckpt) 
 
     # if not args.test_only:
     #     trainer.train()

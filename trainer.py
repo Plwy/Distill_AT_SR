@@ -9,14 +9,17 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 class Trainer():
-    def __init__(self, args, loader, model, loss, ckp):
+    def __init__(self, args, loader, model_s, model_t, loss, ckp):
         self.args = args
         self.scale = args.scale
 
         self.ckp = ckp
+
         self.loader_train = loader.loader_train
         self.loader_test = loader.loader_test
-        self.model = model
+    
+        self.model_s = model_s
+        self.model_t = model_t
         self.loss = loss
         self.optimizer = utility.make_optimizer(args, self.model)
         self.scheduler = utility.make_scheduler(args, self.optimizer)
