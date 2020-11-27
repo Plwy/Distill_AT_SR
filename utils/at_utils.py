@@ -6,6 +6,23 @@ from torch.nn.parallel._functions import Broadcast
 from torch.nn.parallel import scatter, parallel_apply, gather
 import torch.nn.functional as F
 
+# 空间注意力的激活函数
+def activate_spacial_attention(x):
+    """
+        input  feature: x
+        sum_c(|x|^2)
+        output sa_map: (b,w*h)
+    """
+    x = torch.pow(torch.abs(x), 2)
+    x = torch.sum(x, dim=1, keepdim=True)   # (b,1,w,h)
+    
+    # tran to vec
+    x = x.view(x.size(0), -1)
+    x = F.normalize(x, p=2)
+
+    return  x
+
+
 
 def distillation(y, teacher_scores, labels, T, alpha):
     p = F.log_softmax(y/T, dim=1)
@@ -16,6 +33,9 @@ def distillation(y, teacher_scores, labels, T, alpha):
 
 
 def at(x):
+    """
+        (c,w,h)
+    """
     return F.normalize(x.pow(2).mean(1).view(x.size(0), -1))
 
 

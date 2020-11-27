@@ -2,7 +2,7 @@ import os
 import math
 from decimal import Decimal
 
-import utility
+from utils import utility
 
 import torch
 from torch.autograd import Variable
@@ -10,6 +10,8 @@ from tqdm import tqdm
 
 class Trainer():
     def __init__(self, args, loader, model_s, model_t, loss, ckp):
+    # def __init__(self, args, loader, model_s, loss, ckp):
+
         self.args = args
         self.scale = args.scale
 
@@ -18,10 +20,10 @@ class Trainer():
         self.loader_train = loader.loader_train
         self.loader_test = loader.loader_test
     
-        self.model_s = model_s
-        self.model_t = model_t
+        self.model_s = model_s      # student
+        self.model_t = model_t      # teacher
         self.loss = loss
-        self.optimizer = utility.make_optimizer(args, self.model)
+        self.optimizer = utility.make_optimizer(args, self.model_s)
         self.scheduler = utility.make_scheduler(args, self.optimizer)
 
         if self.args.load != '.':
@@ -41,8 +43,10 @@ class Trainer():
         self.ckp.write_log(
             '[Epoch {}]\tLearning rate: {:.2e}'.format(epoch, Decimal(lr))
         )
+
+        # 
         self.loss.start_log()
-        self.model.train()
+        self.model_s.train()    # 学生网络开始训练
 
         timer_data, timer_model = utility.timer(), utility.timer()
         for batch, (lr, hr, _, idx_scale) in enumerate(self.loader_train):
@@ -51,8 +55,27 @@ class Trainer():
             timer_model.tic()
 
             self.optimizer.zero_grad()
-            sr = self.model(lr, idx_scale)
+            ### sr = self.model(lr, idx_scale)    #
+
+            print("****input lr shape:", lr.shape)
+            print(type(lr))
+            _, fms_t = self.model_t(lr)    # 教师网络返回中间特征
+            
+            # # 根据特征提取空间注意力，调整特征维度到输入
+            # for f in fms_t:
+            #     print(f.shape)
+            # print("============student f=============")
+
+            sr, fms_s = self.model_s(lr, idx_scale)    
+
+            # for f in fms_s:
+            #     print(f.shape)
+            # print("=========================")
+
+
+            # loss = self.loss(sr, hr, fs_t, fms_s)
             loss = self.loss(sr, hr)
+
             if loss.item() < self.args.skip_threshold * self.error_last:
                 loss.backward()
                 self.optimizer.step()
@@ -80,7 +103,7 @@ class Trainer():
         epoch = self.scheduler.last_epoch + 1
         self.ckp.write_log('\nEvaluation:')
         self.ckp.add_log(torch.zeros(1, len(self.scale)))
-        self.model.eval()
+        self.model_s.eval()
 
         timer_test = utility.timer()
         with torch.no_grad():
@@ -96,7 +119,7 @@ class Trainer():
                     else:
                         lr = self.prepare([lr])[0]
 
-                    sr = self.model(lr, idx_scale)
+                    sr = self.model_s(lr, idx_scale)
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]
@@ -127,22 +150,6 @@ class Trainer():
         )
         if not self.args.test_only:
             self.ckp.save(self, epoch, is_best=(best[1][0] + 1 == epoch))
-
-
-
-    def get_SAT(feature):
-        """
-            输入特征，返回空间注意力(SAT)特征图
-            input: feature (1,c,h,w)
-            output: SAT_map (h,w)
-        """
-        # 空间注意力特征图
-        # SAT_maps = []
-        # SAT_maps.append(f for f in features)
-        # # SAT_maps.append(get_SAT(f) for f in features)
-        SAT_map = at(feature)
-
-        return SAT_map
 
 
     def prepare(self, l, volatile=False):

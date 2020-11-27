@@ -1,5 +1,5 @@
-from model import common
-
+import models.common as common
+import torch
 import torch.nn as nn
 
 def make_model(args, parent=False):
@@ -63,16 +63,58 @@ class ResidualGroup(nn.Module):
         res += x
         return res
 
+"""
+    Additional Attention
+    from https://github.com/luuuyi/CBAM.PyTorch/blob/master/model/resnet_cbam.py
+"""
+class ChannelAttention(nn.Module):
+    def __init__(self, in_planes, ratio=16):
+        super(ChannelAttention, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+
+        self.fc1   = nn.Conv2d(in_planes, in_planes // 16, 1, bias=False)
+        self.relu1 = nn.ReLU()
+        self.fc2   = nn.Conv2d(in_planes // 16, in_planes, 1, bias=False)
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = self.fc2(self.relu1(self.fc1(self.avg_pool(x))))
+        max_out = self.fc2(self.relu1(self.fc1(self.max_pool(x))))
+        out = avg_out + max_out
+        return self.sigmoid(out)
+
+
+class SpatialAttention(nn.Module):
+    def __init__(self, kernel_size=3):
+        super(SpatialAttention, self).__init__()
+
+        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        padding = 3 if kernel_size == 7 else 1
+
+        self.conv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x = torch.cat([avg_out, max_out], dim=1)
+        x = self.conv1(x)
+        return self.sigmoid(x)
+
+
 ## Residual Channel Attention Network (RCAN)
 class RCAN(nn.Module):
     def __init__(self, args, conv=common.default_conv):
         super(RCAN, self).__init__()
+        self.args = args
         
-        n_resgroups = args.n_resgroups
+        self.n_resgroups = args.n_resgroups
         n_resblocks = args.n_resblocks
-        n_feats = args.n_feats  # number of feature maps
+        n_feats = args.n_feats
         kernel_size = 3
-        reduction = args.reduction #
+        reduction = args.reduction 
         scale = args.scale[0]
         act = nn.ReLU(True)
         
@@ -84,59 +126,89 @@ class RCAN(nn.Module):
         # define head module
         modules_head = [conv(args.n_colors, n_feats, kernel_size)]
 
-        # define body module
-        modules_body = [
-            ResidualGroup(
-                conv, n_feats, kernel_size, reduction, act=act, res_scale=args.res_scale, n_resblocks=n_resblocks) \
-            for _ in range(n_resgroups)]
-
-        modules_body.append(conv(n_feats, n_feats, kernel_size))
+        # redefine body module
+        ###################
+        for group_id in range(self.n_resgroups):
+            setattr(self, 'body_group{}'.format(str(group_id)), 
+                    ResidualGroup(conv, n_feats, kernel_size, reduction, act=act, 
+                                    res_scale=args.res_scale, n_resblocks=n_resblocks))
+        
+        self.body_tail = conv(n_feats, n_feats, kernel_size)
 
         # define tail module
         modules_tail = [
             common.Upsampler(conv, scale, n_feats, act=False),
             conv(n_feats, args.n_colors, kernel_size)]
 
-        self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
+        self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, sign=1)
 
         self.head = nn.Sequential(*modules_head)
-        self.body = nn.Sequential(*modules_body)
         self.tail = nn.Sequential(*modules_tail)
+        
+        # SA
+        self.sa = SpatialAttention()
 
     def forward(self, x):
+        # featuremaps记录空间注意力特征图 
+        fms = []    
+
         x = self.sub_mean(x)
         x = self.head(x)
+        
+        # sa_map 1 从head层提取
+        sa_map1 = self.sa(x) 
+        fms.append(sa_map1)
+        x = sa_map1 * x
 
-        res = self.body(x)
+        # sa_map 2,3 从RG中提取
+        res = x
+        for group_id in range(self.n_resgroups):
+            res = getattr(self, 'body_group{}'.format(str(group_id)))(res)
+            if group_id == 2 or group_id == 6:
+                rg_sa_map = self.sa(res)
+                res = rg_sa_map * res
+                fms.append(rg_sa_map)
+
+        # samap 4 从RG层结束获取 
+        res = self.body_tail(res)
+        sa_map4 = self.sa(res)
+        fms.append(sa_map4)
+        res = sa_map4 * res
+        
         res += x
 
         x = self.tail(res)
         x = self.add_mean(x)
 
-        return x 
+        return x, fms
+     
+    def load_state_dict_teacher(self, state_dict):
+        own_state = self.state_dict()
+        for name, param in state_dict.items():
+            old_name = name
+            if 'body' in name:
+                a = name.split('.')
+                if int(a[1]) == 10:
+                    a[0] = 'body_tail'
+                else:
+                    a[0] = 'body_group' + a[1]
+                a.pop(1)
+                name = '.'.join(a)
+        
+            if name in own_state:
+                if isinstance(param, nn.Parameter):
+                    param = param.data
+                own_state[name].copy_(param)
+            else:
+                print(name, old_name)
 
-    def load_state_dict(self, state_dict, strict=False):
+                
+    def load_state_dict_student(self, state_dict):
         own_state = self.state_dict()
         for name, param in state_dict.items():
             if name in own_state:
                 if isinstance(param, nn.Parameter):
                     param = param.data
-                try:
-                    own_state[name].copy_(param)
-                except Exception:
-                    if name.find('tail') >= 0:
-                        print('Replace pre-trained upsampler to new one...')
-                    else:
-                        raise RuntimeError('While copying the parameter named {}, '
-                                           'whose dimensions in the model are {} and '
-                                           'whose dimensions in the checkpoint are {}.'
-                                           .format(name, own_state[name].size(), param.size()))
-            elif strict:
-                if name.find('tail') == -1:
-                    raise KeyError('unexpected key "{}" in state_dict'
-                                   .format(name))
-
-        if strict:
-            missing = set(own_state.keys()) - set(state_dict.keys())
-            if len(missing) > 0:
-                raise KeyError('missing keys in state_dict: "{}"'.format(missing))
+                own_state[name].copy_(param)
+            else:
+                print(name)    

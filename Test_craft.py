@@ -82,8 +82,8 @@ def test_craft(image_path):
     img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(image, args.canvas_size, 
                                                                         interpolation=cv2.INTER_LINEAR, 
                                                                         mag_ratio=args.mag_ratio)
-    # print(image.shape)
-    # print(img_resized.shape)
+    print(image.shape)
+    print(img_resized.shape)
     # print('tr', target_ratio)
     # print(size_heatmap)
 
@@ -93,7 +93,7 @@ def test_craft(image_path):
     x = Variable(x.unsqueeze(0))                # [c, h, w] to [b, c, h, w]
     if args.cuda:
         x = x.cuda()    
-
+    print('input size', x.shape)
     with torch.no_grad():
         y, feature_ms = net(x)   # <class 'torch.Tensor'>,[1, 368, 640, 2],[1, 32, 368, 640]
 
@@ -106,42 +106,40 @@ def test_craft(image_path):
         print(feature.shape)
         cv2.imshow('feature_img', feature)
         cv2.waitKey(0)
-    # """
-    #     网络输出后处理
-    # """
-    # # make score and link map
-    # score_text = y[0,:,:,0].cpu().data.numpy()
-    # score_link = y[0,:,:,1].cpu().data.numpy()
+    """
+        网络输出后处理
+    """
+    # make score and link map
+    score_text = y[0,:,:,0].cpu().data.numpy()
+    score_link = y[0,:,:,1].cpu().data.numpy()
 
-    # boxes, polys = craft_utils.getDetBoxes(score_text, score_link, args.text_threshold, args.link_threshold, args.low_text, args.poly)
+    boxes, polys = craft_utils.getDetBoxes(score_text, score_link, args.text_threshold, args.link_threshold, args.low_text, args.poly)
 
-    # # coordinate adjustment
-    # boxes = craft_utils.adjustResultCoordinates(boxes, ratio_w, ratio_h)
-    # polys = craft_utils.adjustResultCoordinates(polys, ratio_w, ratio_h)
-    # for k in range(len(polys)):
-    #     if polys[k] is None: polys[k] = boxes[k]
+    # coordinate adjustment
+    boxes = craft_utils.adjustResultCoordinates(boxes, ratio_w, ratio_h)
+    polys = craft_utils.adjustResultCoordinates(polys, ratio_w, ratio_h)
+    for k in range(len(polys)):
+        if polys[k] is None: polys[k] = boxes[k]
 
-    # result_folder = './TextDe_result/'
-    # if not os.path.isdir(result_folder):
-    #     os.mkdir(result_folder)
-    # file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
+    result_folder = './TextDe_result/'
+    if not os.path.isdir(result_folder):
+        os.mkdir(result_folder)
+    file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
 
-    # return y     
+    return y     
 
 def feature_process(feature):
     print('before feature shape', feature.shape)  #torch.Size([1, 32, 368, 640])
     feature=feature[:,0,:,:]
     feature=feature.view(feature.shape[1],feature.shape[2])
 
-    feature=feature.data.numpy()
+    # feature=feature.data.numpy()
+    feature=feature.data.cpu().numpy()
+
     feature= 1.0/(1+np.exp(-1*feature))        #use sigmod to [0,1]
     feature=np.round(feature*255)   # to [0,255]
     feature=np.array(feature, dtype=np.uint8)
-    print('==',feature.shape)
-    print(feature.dtype)
-
-    # np.array([[1,2],[3,4]],dtype=np.float32)
-
+    print("output feature:",feature.shape, feature.dtype)
     return feature
 
 

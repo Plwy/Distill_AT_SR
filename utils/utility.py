@@ -77,7 +77,7 @@ class checkpoint():
             f.write('\n')
 
     def save(self, trainer, epoch, is_best=False):
-        trainer.model.save(self.dir, epoch, is_best=is_best)
+        trainer.model_s.save(self.dir, epoch, is_best=is_best)
         trainer.loss.save(self.dir)
         trainer.loss.plot_loss(self.dir, epoch)
 
