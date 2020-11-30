@@ -32,11 +32,11 @@ parser.add_argument('--data_test', type=str, default='DIV2K',
                     help='test dataset name')
 parser.add_argument('--benchmark_noise', action='store_true',
                     help='use noisy benchmark sets')
-parser.add_argument('--n_train', type=int, default=800,
+parser.add_argument('--n_train', type=int, default=30,
                     help='number of training set')
 parser.add_argument('--n_val', type=int, default=5,
                     help='number of validation set')
-parser.add_argument('--offset_val', type=int, default=800,
+parser.add_argument('--offset_val', type=int, default=30,
                     help='validation index offest')
 parser.add_argument('--ext', type=str, default='sep_reset',
                     help='dataset file extension')
@@ -79,7 +79,8 @@ parser.add_argument('--precision', type=str, default='single',
 
 # add
 parser.add_argument('--feature_loss_used', default=1, type=int, help='whether to use feature loss')
-parser.add_argument('--feature_distilation_type', default="1*SA", type=str, help='feature distilation type')
+# parser.add_argument('--feature_distilation_type', default="1*SA", type=str, help='feature distilation type')parser.add_argument('--feature_distilation_type', default="1*SA", type=str, help='feature distilation type')
+parser.add_argument('--feature_distilation_type', default="0.1*AD+0.2*SD", type=str, help='feature distilation type')
 parser.add_argument('--alpha', type=float, default=0.5, help='TS loss coefficient')
 parser.add_argument('--teacher_ckpts', 
                     default='ckpts/teacher_ckpts/CRAFT_model/craft_mlt_25k.pth', 

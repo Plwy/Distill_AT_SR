@@ -15,13 +15,10 @@ def activate_spacial_attention(x):
     """
     x = torch.pow(torch.abs(x), 2)
     x = torch.sum(x, dim=1, keepdim=True)   # (b,1,w,h)
-    
-    # tran to vec
-    x = x.view(x.size(0), -1)
+    # x = x.view(x.size(0), -1)   # tran to vec (b, w*h)
     x = F.normalize(x, p=2)
 
     return  x
-
 
 
 def distillation(y, teacher_scores, labels, T, alpha):

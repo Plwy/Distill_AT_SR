@@ -168,6 +168,5 @@ class CRAFT(nn.Module):
             if i == 1 or i == 3:
                 features.append(y)
 
-        # y = self.conv_cls(y)
 
         return y.permute(0,2,3,1), features

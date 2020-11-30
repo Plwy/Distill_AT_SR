@@ -8,6 +8,9 @@ import torch
 from torch.autograd import Variable
 from tqdm import tqdm
 
+from utils.at_utils import *
+import torch.nn.functional as F
+
 class Trainer():
     def __init__(self, args, loader, model_s, model_t, loss, ckp):
     # def __init__(self, args, loader, model_s, loss, ckp):
@@ -44,9 +47,9 @@ class Trainer():
             '[Epoch {}]\tLearning rate: {:.2e}'.format(epoch, Decimal(lr))
         )
 
-        # 
+        # 学生网络开始训练
         self.loss.start_log()
-        self.model_s.train()    # 学生网络开始训练
+        self.model_s.train()    
 
         timer_data, timer_model = utility.timer(), utility.timer()
         for batch, (lr, hr, _, idx_scale) in enumerate(self.loader_train):
@@ -55,26 +58,22 @@ class Trainer():
             timer_model.tic()
 
             self.optimizer.zero_grad()
-            ### sr = self.model(lr, idx_scale)    #
 
-            print("****input lr shape:", lr.shape)
-            print(type(lr))
-            _, fms_t = self.model_t(lr)    # 教师网络返回中间特征
+            print("input lr shape", lr.shape)
+            _, fs_t = self.model_t(lr)    # 教师网络返回中间层特征
+            sr, fms_s = self.model_s(lr, idx_scale)    # 学生网络返回注意力map
+
+            print("教师网络的尺寸变化")
+            print(fs_t[0].shape)
             
-            # # 根据特征提取空间注意力，调整特征维度到输入
-            # for f in fms_t:
-            #     print(f.shape)
-            # print("============student f=============")
+            # 教师网络特征上采样
+            for i in range(len(fs_t)):
+                fs_t[i] = F.interpolate(fs_t[i], 
+                                size=(fms_s[i].shape[2], fms_s[i].shape[3]), 
+                                mode='bilinear', align_corners=True)
+            print(fs_t[0].shape)
 
-            sr, fms_s = self.model_s(lr, idx_scale)    
-
-            # for f in fms_s:
-            #     print(f.shape)
-            # print("=========================")
-
-
-            # loss = self.loss(sr, hr, fs_t, fms_s)
-            loss = self.loss(sr, hr)
+            loss = self.loss(sr, hr, fms_s, fs_t)
 
             if loss.item() < self.args.skip_threshold * self.error_last:
                 loss.backward()
