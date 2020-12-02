@@ -28,14 +28,11 @@ class DIV2K(srdata.SRData):
             # print(os.path.join(self.dir_hr, filename + self.ext))
             list_hr.append(os.path.join(self.dir_hr, filename + self.ext))
             for si, s in enumerate(self.scale):
-                # print(os.path.join(
-                #     self.dir_lr,
-                #     'X{}/{}x{}{}'.format(s, filename, s, self.ext)
-                # )) 
                 list_lr[si].append(os.path.join(
                     self.dir_lr,
                     'X{}/{}x{}{}'.format(s, filename, s, self.ext)
                 ))
+
         return list_hr, list_lr
 
     def _set_filesystem(self, dir_data):

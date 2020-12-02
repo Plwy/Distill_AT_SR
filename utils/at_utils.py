@@ -21,6 +21,25 @@ def activate_spacial_attention(x):
     return  x
 
 
+def similarity_loss(f_s, f_t):
+    """
+        相似性矩阵
+    """
+    bsz = f_s.shape[0]
+    f_s = f_s.view(bsz, -1)     #shape(b,c*w*h)
+    f_t = f_t.view(bsz, -1)     #shape(b,c*w*h)
+
+    G_s = torch.mm(f_s, torch.t(f_s))   #(5,5)
+    # G_s = G_s / G_s.norm(2)
+    G_s = torch.nn.functional.normalize(G_s)   #
+    G_t = torch.mm(f_t, torch.t(f_t))       #(5,5)
+    # G_t = G_t / G_t.norm(2)
+    G_t = torch.nn.functional.normalize(G_t)
+
+    G_diff = G_t - G_s                  
+    loss = (G_diff * G_diff).view(-1, 1).sum(0) / (bsz * bsz)
+    return loss
+
 def distillation(y, teacher_scores, labels, T, alpha):
     p = F.log_softmax(y/T, dim=1)
     q = F.softmax(teacher_scores/T, dim=1)

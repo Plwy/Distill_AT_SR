@@ -1,5 +1,4 @@
 import argparse
-# import template
 
 parser = argparse.ArgumentParser(description='Knowledge distillation for super-resolutioin')
 
@@ -139,7 +138,6 @@ parser.add_argument('--TS', default="S", type=str, help='test teacher or student
 
 
 args = parser.parse_args()
-# template.set_template(args)
 
 args.scale = list(map(lambda x: int(x), args.scale.split('+')))
 # args.data_train = args.data_train.split('+')

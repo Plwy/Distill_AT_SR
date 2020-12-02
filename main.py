@@ -102,26 +102,12 @@ def train():
 
     loss = Loss(args, student_ckpt) if not args.test_only else None
     trainer = Trainer(args, loader, student_model, teacher_model,  loss, student_ckpt) 
-    # trainer = Trainer(args, loader, student_model,  loss, student_ckpt) 
 
-    if not args.test_only:
-        print("=====start train=======")
+    while not trainer.terminate():
         trainer.train()
-        trainer.test()
-    else:
-        trainer.test()
+        trainer.test()   
 
-    # student_ckpt.done()
-    # 优化器
-    
-
-
-# def eval():
-#     """
-#         推导
-#     """
-
-
+    student_ckpt.done()
 
 if __name__ == '__main__':
     train()

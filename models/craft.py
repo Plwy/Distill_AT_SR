@@ -13,8 +13,6 @@ from torchvision.models.vgg import model_urls
 # from models.vgg16_bn import vgg16_bn, init_weights
 from collections import namedtuple
 
-from utils.at_utils import at
-
 
 def init_weights(modules):
     for m in modules:

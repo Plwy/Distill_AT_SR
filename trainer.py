@@ -13,8 +13,6 @@ import torch.nn.functional as F
 
 class Trainer():
     def __init__(self, args, loader, model_s, model_t, loss, ckp):
-    # def __init__(self, args, loader, model_s, loss, ckp):
-
         self.args = args
         self.scale = args.scale
 
@@ -47,11 +45,12 @@ class Trainer():
             '[Epoch {}]\tLearning rate: {:.2e}'.format(epoch, Decimal(lr))
         )
 
-        # 学生网络开始训练
+        # start train
         self.loss.start_log()
         self.model_s.train()    
 
         timer_data, timer_model = utility.timer(), utility.timer()
+        print(len(self.loader_train))
         for batch, (lr, hr, _, idx_scale) in enumerate(self.loader_train):
             lr, hr = self.prepare([lr, hr])
             timer_data.hold()
@@ -59,20 +58,9 @@ class Trainer():
 
             self.optimizer.zero_grad()
 
-            print("input lr shape", lr.shape)
             _, fs_t = self.model_t(lr)    # 教师网络返回中间层特征
             sr, fms_s = self.model_s(lr, idx_scale)    # 学生网络返回注意力map
-
-            print("教师网络的尺寸变化")
-            print(fs_t[0].shape)
             
-            # 教师网络特征上采样
-            for i in range(len(fs_t)):
-                fs_t[i] = F.interpolate(fs_t[i], 
-                                size=(fms_s[i].shape[2], fms_s[i].shape[3]), 
-                                mode='bilinear', align_corners=True)
-            print(fs_t[0].shape)
-
             loss = self.loss(sr, hr, fms_s, fs_t)
 
             if loss.item() < self.args.skip_threshold * self.error_last:
@@ -118,7 +106,7 @@ class Trainer():
                     else:
                         lr = self.prepare([lr])[0]
 
-                    sr = self.model_s(lr, idx_scale)
+                    sr, _ = self.model_s(lr, idx_scale)        #
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]

@@ -24,6 +24,9 @@ class Data:
                 shuffle=True,
                 **kwargs
             )
+
+            print("yoyoyo", len(self.loader_train))
+
         if args.data_test in ['Set5', 'Set14', 'B100', 'Urban100']:
             if not args.benchmark_noise:
                 module_test = import_module('data.benchmark')

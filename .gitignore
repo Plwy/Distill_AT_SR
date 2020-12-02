@@ -1,9 +1,9 @@
 .idea/
 *.pyc
 __pycache__/
-utils/__pycache__/
-
+*/__pycache__/
 result/
 ckpts/
+experiment/
 
 todo.md

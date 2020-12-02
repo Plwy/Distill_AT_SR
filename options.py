@@ -1,12 +1,8 @@
 import argparse
-# import template
 
 parser = argparse.ArgumentParser(description='EDSR and MDSR')
-
 parser.add_argument('--debug', action='store_true',
                     help='Enables debug mode')
-parser.add_argument('--template', default='.',
-                    help='You can set various templates in option.py')
 
 # Hardware specifications
 parser.add_argument('--n_threads', type=int, default=3,
@@ -22,7 +18,8 @@ parser.add_argument('--gpu_id', type=int, default=0, help='GPU id')
 
 
 # Data specifications
-parser.add_argument('--dir_data', type=str, default='/media/zsl/data/zsl_datasets/RCAN/traindata/DIV2K/bicubic',
+parser.add_argument('--dir_data', type=str,             # 
+                    default='/media/zsl/data/zsl_datasets/RCAN/traindata/DIV2K/bicubic',
                     help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
@@ -32,20 +29,20 @@ parser.add_argument('--data_test', type=str, default='DIV2K',
                     help='test dataset name')
 parser.add_argument('--benchmark_noise', action='store_true',
                     help='use noisy benchmark sets')
-parser.add_argument('--n_train', type=int, default=30,
+
+parser.add_argument('--n_train', type=int, default=30,      # 
                     help='number of training set')
 parser.add_argument('--n_val', type=int, default=5,
                     help='number of validation set')
-parser.add_argument('--offset_val', type=int, default=30,
+parser.add_argument('--offset_val', type=int, default=30,   #
                     help='validation index offest')
 parser.add_argument('--ext', type=str, default='sep_reset',
                     help='dataset file extension')
 parser.add_argument('--scale', default='4',
                     help='super resolution scale')
-parser.add_argument('--patch_size', type=int, default=96,
+
+parser.add_argument('--patch_size', type=int, default=96,   # 192
                     help='output patch size')
-# parser.add_argument('--patch_size', type=int, default=192,
-#                     help='output patch size')
 parser.add_argument('--rgb_range', type=int, default=255,
                     help='maximum value of RGB')
 parser.add_argument('--n_colors', type=int, default=3,
@@ -56,8 +53,11 @@ parser.add_argument('--chop', action='store_true',
                     help='enable memory-efficient forward')
 
 # Model specifications
-parser.add_argument('--model', default='RCAN_AT',
+parser.add_argument('--model', default='RCAN_AT',       # student model
                     help='model name')
+parser.add_argument('--teacher_ckpts',                  # teacher model
+                    default='ckpts/teacher_ckpts/CRAFT_model/craft_mlt_25k.pth', 
+                    type=str, help='teachers selected')
 
 parser.add_argument('--act', type=str, default='relu',
                     help='activation function')
@@ -77,24 +77,15 @@ parser.add_argument('--precision', type=str, default='single',
                     choices=('single', 'half'),
                     help='FP precision for test (single | half)')
 
-# add
-parser.add_argument('--feature_loss_used', default=1, type=int, help='whether to use feature loss')
-# parser.add_argument('--feature_distilation_type', default="1*SA", type=str, help='feature distilation type')parser.add_argument('--feature_distilation_type', default="1*SA", type=str, help='feature distilation type')
-parser.add_argument('--feature_distilation_type', default="0.1*AD+0.2*SD", type=str, help='feature distilation type')
-parser.add_argument('--alpha', type=float, default=0.5, help='TS loss coefficient')
-parser.add_argument('--teacher_ckpts', 
-                    default='ckpts/teacher_ckpts/CRAFT_model/craft_mlt_25k.pth', 
-                    type=str, help='teachers selected')
-
 
 # Training specifications
 parser.add_argument('--reset', action='store_true',
                     help='reset the training')
 parser.add_argument('--test_every', type=int, default=1000,
                     help='do test per every N batches')
-parser.add_argument('--epochs', type=int, default=1000,
+parser.add_argument('--epochs', type=int, default=1000,      #
                     help='number of epochs to train')
-parser.add_argument('--batch_size', type=int, default=16,
+parser.add_argument('--batch_size', type=int, default=16,        # 
                     help='input batch size for training')
 parser.add_argument('--split_batch', type=int, default=1,
                     help='split the batch into smaller chunks')
@@ -129,13 +120,16 @@ parser.add_argument('--weight_decay', type=float, default=0,
                     help='weight decay')
 
 # Loss specifications
-parser.add_argument('--loss', type=str, default='1*L1',
+parser.add_argument('--loss', type=str, default='1*MSE',
                     help='loss function configuration')
 parser.add_argument('--skip_threshold', type=float, default='1e6',
                     help='skipping batch that has large error')
+# parser.add_argument('--feature_loss_used', default=1, type=int, help='whether to use feature loss')
+parser.add_argument('--feature_distilation_type', default="1*SD+1*AD", type=str, help='feature distilation type')
+
 
 # Log specifications
-parser.add_argument('--save', type=str, default='CRAF_RCAN_BIV2K',
+parser.add_argument('--save', type=str, default='TEST_loss',
                     help='file name to save')
 parser.add_argument('--load', type=str, default='.',
                     help='file name to load')
