@@ -19,26 +19,26 @@ parser.add_argument('--gpu_id', type=int, default=0, help='GPU id')
 
 # Data specifications
 parser.add_argument('--dir_data', type=str,             # 
-                    default='/media/zsl/data/zsl_datasets/RCAN/traindata/DIV2K/bicubic',
+                    default='/media/zsl/data/zsl_datasets/GF/data_set',
                     help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
 parser.add_argument('--data_train', type=str, default='DIV2K',
                     help='train dataset name')
-parser.add_argument('--data_test', type=str, default='DIV2K',
+parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
 parser.add_argument('--benchmark_noise', action='store_true',
                     help='use noisy benchmark sets')
 
-parser.add_argument('--n_train', type=int, default=30,      # 
+parser.add_argument('--n_train', type=int, default=8,      # 
                     help='number of training set')
 parser.add_argument('--n_val', type=int, default=5,
                     help='number of validation set')
-parser.add_argument('--offset_val', type=int, default=30,   #
+parser.add_argument('--offset_val', type=int, default=800,   #
                     help='validation index offest')
 parser.add_argument('--ext', type=str, default='sep_reset',
                     help='dataset file extension')
-parser.add_argument('--scale', default='4',
+parser.add_argument('--scale', default='2',
                     help='super resolution scale')
 
 parser.add_argument('--patch_size', type=int, default=96,   # 192
@@ -81,11 +81,11 @@ parser.add_argument('--precision', type=str, default='single',
 # Training specifications
 parser.add_argument('--reset', action='store_true',
                     help='reset the training')
-parser.add_argument('--test_every', type=int, default=1000,
+parser.add_argument('--test_every', type=int, default=20,
                     help='do test per every N batches')
-parser.add_argument('--epochs', type=int, default=1000,      #
+parser.add_argument('--epochs', type=int, default=100,      #
                     help='number of epochs to train')
-parser.add_argument('--batch_size', type=int, default=16,        # 
+parser.add_argument('--batch_size', type=int, default=8,        # 
                     help='input batch size for training')
 parser.add_argument('--split_batch', type=int, default=1,
                     help='split the batch into smaller chunks')
@@ -120,12 +120,12 @@ parser.add_argument('--weight_decay', type=float, default=0,
                     help='weight decay')
 
 # Loss specifications
-parser.add_argument('--loss', type=str, default='1*MSE',
+parser.add_argument('--loss', type=str, default='0.1*L1',
                     help='loss function configuration')
 parser.add_argument('--skip_threshold', type=float, default='1e6',
                     help='skipping batch that has large error')
-# parser.add_argument('--feature_loss_used', default=1, type=int, help='whether to use feature loss')
-parser.add_argument('--feature_distilation_type', default="1*SD+1*AD", type=str, help='feature distilation type')
+
+parser.add_argument('--feature_distilation_type', default="1*AD+1*SD", type=str, help='feature distilation type')
 
 
 # Log specifications
@@ -150,13 +150,12 @@ parser.add_argument('--n_resgroups', type=int, default=10,
 parser.add_argument('--reduction', type=int, default=16,
                     help='number of feature maps reduction')
 # options for test
-parser.add_argument('--testpath', type=str, default='../test/DIV2K_val_LR_our',
+parser.add_argument('--testpath', type=str, default='/media/zsl/data/zsl_datasets/GF/data_set',
                     help='dataset directory for testing')
 parser.add_argument('--testset', type=str, default='Set5',
                     help='dataset name for testing')
 
 args = parser.parse_args()
-# template.set_template(args)
 
 args.scale = list(map(lambda x: int(x), args.scale.split('+')))
 

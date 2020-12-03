@@ -51,7 +51,8 @@ class Trainer():
 
         timer_data, timer_model = utility.timer(), utility.timer()
         print(len(self.loader_train))
-        for batch, (lr, hr, _, idx_scale) in enumerate(self.loader_train):
+        for batch, (lr, hr, _) in enumerate(self.loader_train):
+            idx_scale = torch.IntTensor(0).to('cuda:0')
             lr, hr = self.prepare([lr, hr])
             timer_data.hold()
             timer_model.tic()

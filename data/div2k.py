@@ -4,6 +4,8 @@ from data import common
 from data import srdata
 
 import numpy as np
+import scipy.misc as misc
+
 import torch
 import torch.utils.data as data
 
@@ -22,24 +24,28 @@ class DIV2K(srdata.SRData):
             idx_begin = self.args.n_train
             idx_end = self.args.offset_val + self.args.n_val
 
-        print(idx_begin + 1, idx_end + 1)
-        for i in range(idx_begin + 1, idx_end + 1):
-            filename = '{:0>4}'.format(i)
-            # print(os.path.join(self.dir_hr, filename + self.ext))
-            list_hr.append(os.path.join(self.dir_hr, filename + self.ext))
+        filenames = os.listdir(self.dir_hr)
+        idx_end = len(filenames)
+        for i in range(idx_begin, idx_end):
+        # for filename in os.listdir(self.dir_hr):
+            # filename = '{:0>4}'.format(i)
+            filename = filenames[i]
+            list_hr.append(os.path.join(self.dir_hr, filename))
+            # list_hr.append(os.path.join(self.dir_hr, filename))
             for si, s in enumerate(self.scale):
-                list_lr[si].append(os.path.join(
-                    self.dir_lr,
-                    'X{}/{}x{}{}'.format(s, filename, s, self.ext)
-                ))
+            #     list_lr[si].append(os.path.join(
+            #         self.dir_lr,
+            #         'X{}/{}x{}{}'.format(s, filename, s, self.ext)
+            #     ))
+                list_lr[si].append(os.path.join(self.dir_lr, filename))
 
         return list_hr, list_lr
 
     def _set_filesystem(self, dir_data):
-        self.apath = dir_data + '/DIV2K_test'
-        self.dir_hr = os.path.join(self.apath, 'DIV2K_train_HR')
-        self.dir_lr = os.path.join(self.apath, 'DIV2K_train_LR_bicubic')
-        self.ext = '.png'
+        self.apath = dir_data + '/train_1247'
+        self.dir_hr = os.path.join(self.apath, 'HR')
+        self.dir_lr = os.path.join(self.apath, 'LR')
+        self.ext = '.jpg'
 
     def _name_hrbin(self):
         return os.path.join(
