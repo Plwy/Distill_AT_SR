@@ -61,7 +61,7 @@ class Trainer():
 
             _, fs_t = self.model_t(lr)    # 教师网络返回中间层特征
             sr, fms_s = self.model_s(lr, idx_scale)    # 学生网络返回注意力map
-            
+
             loss = self.loss(sr, hr, fms_s, fs_t)
 
             if loss.item() < self.args.skip_threshold * self.error_last:
@@ -99,7 +99,7 @@ class Trainer():
                 eval_acc = 0
                 self.loader_test.dataset.set_scale(idx_scale)
                 tqdm_test = tqdm(self.loader_test, ncols=80)
-                for idx_img, (lr, hr, filename, _) in enumerate(tqdm_test):
+                for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
                     filename = filename[0]
                     no_eval = (hr.nelement() == 1)
                     if not no_eval:

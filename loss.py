@@ -262,7 +262,6 @@ class SDLoss(nn.Module):
     def similarity_loss(self, f_s, f_t):
         # same batch
         assert f_s.shape[0] == f_t.shape[0]      
-        print(f_s.shape, f_t.shape)
         bsz = f_s.shape[0]
         f_s = f_s.view(bsz, -1)     #(b,c_s*w_s*h_s)
         f_t = f_t.view(bsz, -1)     #(b,c_t*w_t*h_t)
