@@ -16,18 +16,15 @@ class SRData(data.Dataset):
         self.split = 'train' if train else 'test'
         self.benchmark = benchmark
         self.scale = args.scale
-
         self.idx_scale = 0
 
         self._set_filesystem(args.dir_data)
 
-        
         def _load_bin():
             self.images_hr = np.load(self._name_hrbin())
             self.images_lr = [
                 np.load(self._name_lrbin(s)) for s in self.scale
             ]
-
 
         if args.ext == 'img' or benchmark:
             self.images_hr, self.images_lr = self._scan()
@@ -36,23 +33,24 @@ class SRData(data.Dataset):
             if args.ext.find('reset') >= 0:
                 print('Preparing seperated binary files')
                 for v in self.images_hr:
-                    print('$$$', v)
-                    # hr = misc.imread(v)
+                    if 'npy' in v:
+                        break
                     hr = imageio.imread(v)
                     name_sep = v.replace(self.ext, '.npy')
                     np.save(name_sep, hr)
                 for si, s in enumerate(self.scale):
                     for v in self.images_lr[si]:
-                        # lr = misc.imread(v)
+                        if 'npy' in v:
+                            break
                         lr = imageio.imread(v)
                         name_sep = v.replace(self.ext, '.npy')
                         np.save(name_sep, lr)
 
             self.images_hr = [
-                v.replace(self.ext, '.npy') for v in self.images_hr
+                v.replace(self.ext, '.npy') for v in self.images_hr if v.endswith(self.ext)
             ]
             self.images_lr = [
-                [v.replace(self.ext, '.npy') for v in self.images_lr[i]]
+                [v.replace(self.ext, '.npy') for v in self.images_lr[i] if v.endswith(self.ext)]
                 for i in range(len(self.scale))
             ]
 
@@ -69,14 +67,11 @@ class SRData(data.Dataset):
                     os.mkdir(bin_path)
 
                 list_hr, list_lr = self._scan()
-                # hr = [misc.imread(f) for f in list_hr]
-                hr = [imageio.imread(f) for f in list_hr]
-
+                hr = [misc.imread(f) for f in list_hr]
                 np.save(self._name_hrbin(), hr)
                 del hr
                 for si, s in enumerate(self.scale):
-                    # lr_scale = [misc.imread(f) for f in list_lr[si]]
-                    lr_scale = [imageio.imread(f) for f in list_lr[si]]
+                    lr_scale = [misc.imread(f) for f in list_lr[si]]
                     np.save(self._name_lrbin(s), lr_scale)
                     del lr_scale
                 _load_bin()
@@ -114,8 +109,6 @@ class SRData(data.Dataset):
         hr = self.images_hr[idx]
         if self.args.ext == 'img' or self.benchmark:
             filename = hr
-            # lr = misc.imread(lr)
-            # hr = misc.imread(hr)
             lr = imageio.imread(lr)
             hr = imageio.imread(hr)
         elif self.args.ext.find('sep') >= 0:

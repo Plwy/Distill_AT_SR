@@ -1,6 +1,7 @@
 from importlib import import_module
 
-from .dataloader import MSDataLoader
+# from dataloader import MSDataLoader
+from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 
 class Data:
@@ -17,15 +18,19 @@ class Data:
         if not args.test_only:
             module_train = import_module('data.' + args.data_train.lower())
             trainset = getattr(module_train, args.data_train)(args)
-            self.loader_train = MSDataLoader(
-                args,
+            # self.loader_train = MSDataLoader(
+            #     args,
+            #     trainset,
+            #     batch_size=args.batch_size,
+            #     shuffle=True,
+            #     **kwargs
+            # )
+            self.loader_train = DataLoader(
                 trainset,
                 batch_size=args.batch_size,
                 shuffle=True,
-                **kwargs
+                pin_memory=not args.cpu
             )
-
-            print("yoyoyo", len(self.loader_train))
 
         if args.data_test in ['Set5', 'Set14', 'B100', 'Urban100']:
             if not args.benchmark_noise:
@@ -37,14 +42,21 @@ class Data:
                     args,
                     train=False
                 )
+
         else:
             module_test = import_module('data.' +  args.data_test.lower())
             testset = getattr(module_test, args.data_test)(args, train=False)
 
-        self.loader_test = MSDataLoader(
-            args,
+        # self.loader_test = MSDataLoader(
+        #     args,
+        #     testset,
+        #     batch_size=1,
+        #     shuffle=False,
+        #     **kwargs
+        # )
+        self.loader_test = DataLoader(
             testset,
             batch_size=1,
             shuffle=False,
-            **kwargs
+            pin_memory=not args.cpu
         )
