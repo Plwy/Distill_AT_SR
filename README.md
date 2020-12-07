@@ -28,16 +28,11 @@ bash ./scripts/train_RCAN_dat.sh
 
 
 2) 测试           
+
 测试教师网络对单张图片输入的文字检测效果       
 ```
 python Test_craft.py
 ```
-
-教师网络在文字检测数据集上的测试          
-```
-python eval_craft.py
-```
-
 
 
 
