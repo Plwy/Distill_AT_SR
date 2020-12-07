@@ -34,7 +34,7 @@ class Benchmark(srdata.SRData):
 
     def _set_filesystem(self, dir_data):
         # self.apath = os.path.join(dir_data, self.args.data_test)
-        self.apath = os.path.join(dir_data, 'val_set_97')
+        self.apath = os.path.join(dir_data, 'val_smimg_549')
         self.dir_hr = os.path.join(self.apath, 'hr_image')
         self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
-        self.ext = '.jpg'
+        self.ext = '.png'

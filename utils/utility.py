@@ -48,7 +48,6 @@ class checkpoint():
 
         if args.load == '.':
             if args.save == '.': args.save = now
-            self.dir = '../experiment/' + args.save
             self.dir = 'experiment/' + args.save
 
         else:
@@ -104,7 +103,7 @@ class checkpoint():
         self.log_file.close()
 
     def plot_psnr(self, epoch):
-        axis = np.linspace(1, epoch, epoch)
+        axis = np.linspace(1, epoch-1, epoch-1)
         label = 'SR on {}'.format(self.args.data_test)
         fig = plt.figure()
         plt.title(label)

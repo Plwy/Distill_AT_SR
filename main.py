@@ -92,6 +92,7 @@ def load_teacher_model():
 
 
 def train():
+    
     # 训练数据加载
     loader = data.Data(args)  #<class 'data.Data'>
     teacher_model = load_teacher_model()  #<class 'models.craft.CRAFT'>

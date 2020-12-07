@@ -6,6 +6,8 @@ from utils import utility
 
 import torch
 from torch.autograd import Variable
+from tensorboardX import SummaryWriter
+
 from tqdm import tqdm
 
 from utils.at_utils import *
@@ -13,14 +15,15 @@ import torch.nn.functional as F
 
 class Trainer():
     def __init__(self, args, loader, model_s, model_t, loss, ckp):
+        self.writer = SummaryWriter('experiment/RCAN_BIX2_G10R20P48')
+
         self.args = args
         self.scale = args.scale
 
         self.ckp = ckp
-
         self.loader_train = loader.loader_train
         self.loader_test = loader.loader_test
-    
+
         self.model_s = model_s      # student
         self.model_t = model_t      # teacher
         self.loss = loss
@@ -61,8 +64,10 @@ class Trainer():
 
             _, fs_t = self.model_t(lr)    # 教师网络返回中间层特征
             sr, fms_s = self.model_s(lr, idx_scale)    # 学生网络返回注意力map
-
             loss = self.loss(sr, hr, fms_s, fs_t)
+
+            # 
+            self.writer.add_scalar('Train/loss', loss.to('cpu').item(), batch)
 
             if loss.item() < self.args.skip_threshold * self.error_last:
                 loss.backward()
@@ -137,7 +142,7 @@ class Trainer():
             'Total time: {:.2f}s\n'.format(timer_test.toc()), refresh=True
         )
         if not self.args.test_only:
-            self.ckp.save(self, epoch, is_best=(best[1][0] + 1 == epoch))
+            self.ckp.save(self, epoch, is_best=(best[1][0] == epoch))
 
 
     def prepare(self, l, volatile=False):

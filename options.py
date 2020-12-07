@@ -85,7 +85,7 @@ parser.add_argument('--test_every', type=int, default=20,
                     help='do test per every N batches')
 parser.add_argument('--epochs', type=int, default=100,      #
                     help='number of epochs to train')
-parser.add_argument('--batch_size', type=int, default=4,        # 
+parser.add_argument('--batch_size', type=int, default=8,        # 
                     help='input batch size for training')
 parser.add_argument('--split_batch', type=int, default=1,
                     help='split the batch into smaller chunks')

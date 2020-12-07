@@ -23,10 +23,6 @@ class Loss(nn.modules.loss._Loss):
         self.loss = []
         self.loss_module = nn.ModuleList()
 
-        self.feature_loss = [] 
-        self.feature_loss_module = nn.ModuleList()
-
-
         # 不同的SR loss计算
         for loss in args.loss.split('+'):
             weight, loss_type = loss.split('*')
@@ -66,18 +62,11 @@ class Loss(nn.modules.loss._Loss):
             elif feature_type == 'SD':
                 l = {'type': feature_type, 
                     'weight': float(weight), 
-                    'function': SDLoss()}   
-
-            # self.loss.append(l)
-            self.feature_loss.append(l)
-            self.feature_loss_module.append(l['function'])                 
-        
+                    'function': SDLoss()}            
+            self.loss.append(l)
 
         if len(self.loss) > 1:
             self.loss.append({'type': 'Total', 'weight': 0, 'function': None})
-
-        if len(self.feature_loss) > 1:
-            self.feature_loss.append({'type': 'Total', 'weight': 0, 'function': None})
 
         # 添加loss模块
         for l in self.loss:
@@ -85,16 +74,10 @@ class Loss(nn.modules.loss._Loss):
                 print('{:.3f} * {}'.format(l['weight'], l['type']))
                 self.loss_module.append(l['function'])
 
-        print("===== feature functions ====")
-        print(len(self.feature_loss_module))
-        print("===== loss functions ====")
-        print(len(self.loss_module))
-
         # 模块设置
         self.log = torch.Tensor()
         device = torch.device('cpu' if args.cpu else 'cuda')
         self.loss_module.to(device)
-        self.feature_loss_module.to(device)
 
         if args.precision == 'half': 
             self.loss_module.half()
@@ -102,9 +85,6 @@ class Loss(nn.modules.loss._Loss):
         if not args.cpu and args.n_GPUs > 1:
             self.loss_module = nn.DataParallel(
                 self.loss_module, range(args.n_GPUs)
-            )
-            self.feature_loss_module = nn.DataParallel(
-                self.feature_loss_module, range(args.n_GPUs)
             )
 
         if args.load != '.': self.load(ckp.dir, cpu=args.cpu)
@@ -115,35 +95,21 @@ class Loss(nn.modules.loss._Loss):
         """
             L =（w_0*L0_sr+...+w_n*L1_sr）+ w_ad*L_ad + w_sa*L_sd
         """
-        # SR loss
         losses = []
-        count = 0
         for i, l in enumerate(self.loss):
             if l['function'] is not None:
-                loss = l['function'](sr, hr)
+                if l['type'] in ['AD', 'SD']:
+                    loss = l['function'](student_fms, teacher_fs)
+                else:
+                    loss = l['function'](sr, hr)
                 effective_loss = l['weight'] * loss
                 losses.append(effective_loss)
-                self.log[-1, i] += effective_loss.item()        
-                count += 1
-        sr_loss_sum = sum(losses)
+                self.log[-1, i] += effective_loss.item()      
+        loss_sum = sum(losses)
+        if len(self.loss) > 1:
+            self.log[-1, -1] += loss_sum.item()
 
-        # Activate distill loss, Similarity distill loss
-        assert(len(student_fms) == len(teacher_fs))
-
-        feature_losses = []
-        for i, l in enumerate(self.feature_loss):
-            if l['function'] is not None:
-                f_loss = l['function'](student_fms, teacher_fs)
-                f_loss =  l['weight'] * f_loss
-                feature_losses.append(f_loss.item())
-                self.log[-1, i+count] += f_loss.item()
-
-        feature_loss_sum = sum(feature_losses)
-        loss_sum = sr_loss_sum + feature_loss_sum
-        print("sr loss:{}".format(sr_loss_sum))
-        print("f_loss0:{}  f_loss1:{}".format(feature_losses[0], feature_losses[1]))
-        print("loss sum:", loss_sum)
-
+        print(losses)
         return loss_sum
 
     def step(self):
@@ -152,7 +118,7 @@ class Loss(nn.modules.loss._Loss):
                 l.scheduler.step()
 
     def start_log(self):
-        self.log = torch.cat((self.log, torch.zeros(1, len(self.loss)+len(self.feature_loss) )))
+        self.log = torch.cat((self.log, torch.zeros(1, len(self.loss))))
 
     def end_log(self, n_batches):
         self.log[-1].div_(n_batches)
@@ -166,7 +132,7 @@ class Loss(nn.modules.loss._Loss):
         return ''.join(log)
 
     def plot_loss(self, apath, epoch):
-        axis = np.linspace(1, epoch, epoch)
+        axis = np.linspace(1, epoch-1, epoch-1)
         for i, l in enumerate(self.loss):
             label = '{} Loss'.format(l['type'])
             fig = plt.figure()
@@ -181,9 +147,9 @@ class Loss(nn.modules.loss._Loss):
 
     def get_loss_module(self):
         if self.n_GPUs == 1:
-            return self.feature_loss_module
+            return self.loss_module
         else:
-            return self.feature_loss_module.module
+            return self.loss_module.module
 
     def save(self, apath):
         torch.save(self.state_dict(), os.path.join(apath, 'loss.pt'))
@@ -217,7 +183,6 @@ class ADLoss(nn.Module):
         # 输入为学生注意力特征图list和教师特征list
         assert len(fms_s) == len(fs_t)
         length = len(fms_s)
-
 
         # 教师特征上采样 尺寸一致
         for i in range(len(fs_t)):
