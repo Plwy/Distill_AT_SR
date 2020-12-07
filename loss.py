@@ -262,11 +262,12 @@ class SDLoss(nn.Module):
     def similarity_loss(self, f_s, f_t):
         # same batch
         assert f_s.shape[0] == f_t.shape[0]      
+
         bsz = f_s.shape[0]
         f_s = f_s.view(bsz, -1)     #(b,c_s*w_s*h_s)
         f_t = f_t.view(bsz, -1)     #(b,c_t*w_t*h_t)
 
-        G_s = torch.mm(f_s, torch.t(f_s))   #(5,5)
+        G_s = torch.mm(f_s, torch.t(f_s))   #(b,b)
         G_s = torch.nn.functional.normalize(G_s)   
         G_t = torch.mm(f_t, torch.t(f_t))       
         G_t = torch.nn.functional.normalize(G_t)
