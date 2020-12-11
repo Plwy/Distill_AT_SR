@@ -121,6 +121,16 @@ def test_craft(image_path):
 
     return y     
 
+def draw_heatmap(img, f):
+    def cvt2HeatmapImg(img):
+        img = (np.clip(img, 0, 1) * 255).astype(np.uint8)
+        img = cv2.applyColorMap(img, cv2.COLORMAP_JET)
+        return img
+    
+    
+
+
+
 def feature_process(feature):
     print('before feature shape', feature.shape)  #torch.Size([1, 32, 368, 640])
     feature=feature[:,0,:,:]
