@@ -49,7 +49,6 @@ class Loss(nn.modules.loss._Loss):
 
         # 添加蒸馏损失
         for loss in args.feature_distilation_type.split('+'):
-            print("distill loss", loss)
             weight, feature_type = loss.split('*')
             
             # 空间注意力激活蒸馏损失
@@ -132,7 +131,8 @@ class Loss(nn.modules.loss._Loss):
         return ''.join(log)
 
     def plot_loss(self, apath, epoch):
-        axis = np.linspace(1, epoch-1, epoch-1)
+        # axis = np.linspace(1, epoch-1, epoch-1)
+        axis = np.linspace(1, epoch, epoch)
         for i, l in enumerate(self.loss):
             label = '{} Loss'.format(l['type'])
             fig = plt.figure()

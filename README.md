@@ -25,6 +25,9 @@ LinkRefiner | CTW1500 | - | Used with the General Model | [Click](https://drive.
 ```
 bash ./scripts/train_RCAN_dat.sh 
 ```
+--dir_data 训练集和验证集所在目录
+--pre_train 学生网络预训练模型路径
+
 
 
 2) 测试           
@@ -34,5 +37,20 @@ bash ./scripts/train_RCAN_dat.sh
 python Test_craft.py
 ```
 
+
+### todo
+
+1.数据加载      
+指定文件夹路径加载。
+指定取训练文件数目，测试文件数目。
+
+
+2.从trainer 分离的单独的test      
+只加载训练好的学生模型进行测试 
+
+
+3.tensorboard内容添加          
+
+4.注意力的热图生成        
 
 

@@ -91,9 +91,9 @@ class SRData(data.Dataset):
         raise NotImplementedError
 
     def __getitem__(self, idx):
-        lr, hr, filename = self._load_file(idx)
-        lr, hr = self._get_patch(lr, hr)
-        lr, hr = common.set_channel([lr, hr], self.args.n_colors)
+        lr, hr, filename = self._load_file(idx) 
+        lr, hr = self._get_patch(lr, hr)    
+        lr, hr = common.set_channel([lr, hr], self.args.n_colors)  
         lr_tensor, hr_tensor = common.np2Tensor([lr, hr], self.args.rgb_range)
         return lr_tensor, hr_tensor, filename
 

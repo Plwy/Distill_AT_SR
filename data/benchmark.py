@@ -24,6 +24,7 @@ class Benchmark(srdata.SRData):
                 #     self.dir_lr,
                 #     'X{}/{}x{}{}'.format(s, filename, s, self.ext)
                 # ))
+                print("test_path:", os.path.join(self.dir_lr, filename+self.ext))
                 list_lr[si].append(os.path.join(self.dir_lr, filename+self.ext))
 
         list_hr.sort()
@@ -33,8 +34,23 @@ class Benchmark(srdata.SRData):
         return list_hr, list_lr
 
     def _set_filesystem(self, dir_data):
-        # self.apath = os.path.join(dir_data, self.args.data_test)
-        self.apath = os.path.join(dir_data, 'val_smimg_549')
-        self.dir_hr = os.path.join(self.apath, 'hr_image')
-        self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
+        # val_smimg_549验证
+        # self.apath = os.path.join(dir_data, 'val_smimg_549')
+        # self.dir_hr = os.path.join(self.apath, 'hr_image')
+        # self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
+        # self.ext = '.png'
+
+
+        # test_set_2412测试
+        # self.apath = os.path.join(dir_data, 'test_set_2412')
+        # self.dir_hr = os.path.join(self.apath, 'hr_image')
+        # self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
+        # self.ext = '.jpg'
+
+        # val_ocr_gaofa 测试
+        self.apath = os.path.join(dir_data, 'OCR')
+        self.dir_hr = os.path.join(self.apath, 'val_ocr_gaofa/image')
+        self.dir_lr = os.path.join(self.apath, 'val_ocr_gaofa/image')
         self.ext = '.png'
+
+        

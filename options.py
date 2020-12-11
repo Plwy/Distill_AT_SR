@@ -137,8 +137,12 @@ parser.add_argument('--resume', type=int, default=0,
                     help='resume from specific checkpoint')
 parser.add_argument('--print_model', action='store_true',
                     help='print model')
+
+parser.add_argument('--save_step', type=int, default=5,
+                    help='save model every save_step epoch')      
 parser.add_argument('--save_models', action='store_true',
                     help='save all intermediate models')
+
 parser.add_argument('--print_every', type=int, default=100,
                     help='how many batches to wait before logging training status')
 parser.add_argument('--save_results', action='store_true',
@@ -150,7 +154,7 @@ parser.add_argument('--n_resgroups', type=int, default=10,
 parser.add_argument('--reduction', type=int, default=16,
                     help='number of feature maps reduction')
 # options for test
-parser.add_argument('--testpath', type=str, default='/media/zsl/data/zsl_datasets/GF/data_set',
+parser.add_argument('--testpath', type=str, default='/media/zsl/data/zsl_datasets/GF/data_set/OCR/val_ocr_gaofa/image',
                     help='dataset directory for testing')
 parser.add_argument('--testset', type=str, default='Set5',
                     help='dataset name for testing')

@@ -41,7 +41,9 @@ class Trainer():
     def train(self):
         self.scheduler.step()
         self.loss.step()
-        epoch = self.scheduler.last_epoch + 1
+        epoch = self.scheduler.last_epoch
+
+        # epoch = self.scheduler.last_epoch + 1
         lr = self.scheduler.get_lr()[0]
 
         self.ckp.write_log(
@@ -93,7 +95,9 @@ class Trainer():
         self.error_last = self.loss.log[-1, -1]
 
     def test(self):
-        epoch = self.scheduler.last_epoch + 1
+        # epoch = self.scheduler.last_epoch + 1
+        epoch = self.scheduler.last_epoch
+
         self.ckp.write_log('\nEvaluation:')
         self.ckp.add_log(torch.zeros(1, len(self.scale)))
         self.model_s.eval()
@@ -142,7 +146,8 @@ class Trainer():
             'Total time: {:.2f}s\n'.format(timer_test.toc()), refresh=True
         )
         if not self.args.test_only:
-            self.ckp.save(self, epoch, is_best=(best[1][0] == epoch))
+            # self.ckp.save(self, epoch, is_best=(best[1][0] == epoch))
+            self.ckp.save(self, epoch, is_best=(best[1][0]+1 == epoch))
 
 
     def prepare(self, l, volatile=False):

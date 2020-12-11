@@ -19,6 +19,7 @@ class Model(nn.Module):
         self.device = torch.device('cpu' if args.cpu else 'cuda')
         self.n_GPUs = args.n_GPUs
         self.save_models = args.save_models
+        self.save_step = args.save_step    # 添加模型保存周期
 
         module = import_module('models.' + args.model.lower())
         self.model = module.make_model(args).to(self.device)
@@ -74,7 +75,13 @@ class Model(nn.Module):
                 target.state_dict(),
                 os.path.join(apath, 'model', 'model_best.pt')
             )
-        
+        # 
+        if epoch % self.save_step == 0 :
+            torch.save(
+                target.state_dict(),
+                os.path.join(apath, 'model', 'model_{}.pt'.format(epoch))
+            )        
+
         if self.save_models:
             torch.save(
                 target.state_dict(),
