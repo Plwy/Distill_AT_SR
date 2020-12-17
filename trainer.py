@@ -116,7 +116,11 @@ class Trainer():
                     else:
                         lr = self.prepare([lr])[0]
 
-                    sr, _ = self.model_s(lr, idx_scale)        #
+                    if self.args.chop:
+                        sr = self.model_s(lr, idx_scale)        #
+                    else:
+                        sr, _ = self.model_s(lr, idx_scale)        #
+
                     sr = utility.quantize(sr, self.args.rgb_range)
 
                     save_list = [sr]
@@ -162,7 +166,7 @@ class Trainer():
         if self.args.test_only:
             self.test()
             return True
-        else:
+        else: 
             epoch = self.scheduler.last_epoch + 1
             return epoch >= self.args.epochs
 

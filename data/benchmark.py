@@ -35,10 +35,10 @@ class Benchmark(srdata.SRData):
 
     def _set_filesystem(self, dir_data):
         # val_smimg_549验证
-        # self.apath = os.path.join(dir_data, 'val_smimg_549')
-        # self.dir_hr = os.path.join(self.apath, 'hr_image')
-        # self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
-        # self.ext = '.png'
+        self.apath = os.path.join(dir_data, 'val_smimg_549')
+        self.dir_hr = os.path.join(self.apath, 'hr_image')
+        self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
+        self.ext = '.png'
 
 
         # test_set_2412测试
@@ -46,11 +46,3 @@ class Benchmark(srdata.SRData):
         # self.dir_hr = os.path.join(self.apath, 'hr_image')
         # self.dir_lr = os.path.join(self.apath, 'lr_image_x2_noise')
         # self.ext = '.jpg'
-
-        # val_ocr_gaofa 测试
-        self.apath = os.path.join(dir_data, 'OCR')
-        self.dir_hr = os.path.join(self.apath, 'val_ocr_gaofa/image')
-        self.dir_lr = os.path.join(self.apath, 'val_ocr_gaofa/image')
-        self.ext = '.png'
-
-        

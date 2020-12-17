@@ -40,9 +40,13 @@ class GF(data.Dataset):
         return len(self.filelist)
 
     def _set_filesystem(self, dir_data):
-        # val_ocr_gaofa 测试
-        self.dir_lr = os.path.join(dir_data, 'OCR/val_ocr_gaofa/image')
-        self.ext = '.png'
+        # ## val_ocr_gaofa 测试
+        # self.dir_lr = os.path.join(dir_data, 'OCR/val_ocr_gaofa/image')
+        # self.ext = '.png'
+
+        ## gf_267测试
+        self.dir_lr = os.path.join(dir_data, 'test_set_2412/test_200')
+        self.ext = '.jpg'
 
     def set_scale(self, idx_scale):
         self.idx_scale = idx_scale
